@@ -1,5 +1,9 @@
 # Prerequisites
 *.d
+**/Debug/
+**/Release/
+/.vs
+**/x64
 
 # Object files
 *.o
