@@ -208,9 +208,7 @@ void searchWord(char** linesArray, size_t* lineSizes) {
             len--;
         }
 
-        printf("Searching for: %s\n", searchTerm);
         int found = 0;
-
         for (int i = 0; i <= currLine; i++) {
             if (linesArray[i] != NULL) {
                 char* pos = strstr(linesArray[i], searchTerm);
@@ -227,14 +225,14 @@ void searchWord(char** linesArray, size_t* lineSizes) {
         }
 
         if (!found) {
-            printf("Text not found.\n");
+            printf("Has not found your phrase.\n");
         }
         else {
             printf("\n");
         }
     }
     else {
-        printf("Error reading search term.\n");
+        printf("Error reading search.\n");
     }
 }
 
