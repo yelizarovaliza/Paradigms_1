@@ -31,7 +31,7 @@ void addText(char** linesArray, size_t* lineSizes) {
         }
         else {
             size_t lineArraylen = strlen(linesArray[currLine]);
-            lineSizes[currLine] += (lentext + 1); // +1 for the space
+            lineSizes[currLine] += (lentext + 1);
             linesArray[currLine] = (char*)realloc(linesArray[currLine], lineSizes[currLine] * sizeof(char));
             if (linesArray[currLine] == NULL) {
                 printf("Memory reallocation failed.\n");
@@ -51,7 +51,7 @@ void addText(char** linesArray, size_t* lineSizes) {
 void newLine(char** linesArray, size_t* lineSizes) {
     if (currLine < MAXLENGTH - 1) {
         currLine++;
-        linesArray[currLine] = NULL;  // Initialize the new line slot
+        linesArray[currLine] = NULL;
         lineSizes[currLine] = 0;
         printf("New line is started\n");
     }
@@ -106,7 +106,7 @@ void fileLoad(char** linesArray, size_t* lineSizes) {
             return;
         }
 
-        // Free previously allocated memory
+        // Free previously memory
         for (int i = 0; i < MAXLENGTH; i++) {
             free(linesArray[i]);
             linesArray[i] = NULL;
@@ -188,7 +188,7 @@ int main() {
         }
     }
 
-    // Free allocated memory
+    // Free memory
     for (int i = 0; i < MAXLENGTH; i++) {
         free(linesArray[i]);
     }
