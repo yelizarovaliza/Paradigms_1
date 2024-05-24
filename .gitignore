@@ -2,9 +2,11 @@
 *.d
 **/Debug/
 **/Release/
-**/.vs
+**/.vs/
 ConsoleApplication1/.vs
 **/x64/
+.vs/
+
 
 # Object files
 *.o
