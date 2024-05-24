@@ -16,41 +16,131 @@ void addText(char** linesArray, size_t* lineSizes) {
         size_t lentext = strlen(text);
         if (lentext > 0 && text[lentext - 1] == '\n') {
             text[lentext - 1] = '\0';
+            lentext--;
         }
         printf("You entered: %s\n", text);
 
-        // Додаємо введений текст до першого рядка масиву
-        if (linesArray[0] == NULL) {
-            linesArray[0] = (char*)malloc((lentext + 1) * sizeof(char));
-            if (linesArray[0] == NULL) {
+        if (linesArray[currLine] == NULL) {
+            linesArray[currLine] = (char*)malloc((lentext + 1) * sizeof(char));
+            if (linesArray[currLine] == NULL) {
                 printf("Memory allocation failed.\n");
                 return;
             }
-            strcpy_s(linesArray[0], lentext + 1, text);
-            lineSizes[0] = lentext + 1;
+            strcpy_s(linesArray[currLine], lentext + 1, text);
+            lineSizes[currLine] = lentext + 1;
         }
         else {
-            size_t lineArraylen = strlen(linesArray[0]);
-            lineSizes[0] += lentext;
-            linesArray[0] = (char*)realloc(linesArray[0], lineSizes[0] * sizeof(char));
-            if (linesArray[0] == NULL) {
+            size_t lineArraylen = strlen(linesArray[currLine]);
+            lineSizes[currLine] += (lentext + 1); // +1 for the space
+            linesArray[currLine] = (char*)realloc(linesArray[currLine], lineSizes[currLine] * sizeof(char));
+            if (linesArray[currLine] == NULL) {
                 printf("Memory reallocation failed.\n");
                 return;
             }
-            strcat_s(linesArray[0], lineSizes[0] + 1, " ");
-            strcat_s(linesArray[0], lineSizes[0], text );
+            strcat_s(linesArray[currLine], lineSizes[currLine], " ");
+            strcat_s(linesArray[currLine], lineSizes[currLine], text);
         }
 
-        printf("Current line content: %s\n", linesArray[0]);
+        printf("Current line content: %s\n", linesArray[currLine]);
     }
     else {
         printf("Error reading input.\n");
     }
 }
 
-void newLine(){
-
+void newLine(char** linesArray, size_t* lineSizes) {
+    if (currLine < MAXLENGTH - 1) {
+        currLine++;
+        linesArray[currLine] = NULL;  // Initialize the new line slot
+        lineSizes[currLine] = 0;
+        printf("New line is started\n");
+    }
+    else {
+        printf("Maximum number of lines reached\n");
+    }
 }
+
+void fileSave(char** linesArray, int currLine) {
+    char fileName[MAXLENGTH];
+    printf("Enter the file name for saving: ");
+    if (fgets(fileName, MAXLENGTH, stdin) != NULL) {
+        size_t len = strlen(fileName);
+        if (len > 0 && fileName[len - 1] == '\n') {
+            fileName[len - 1] = '\0';
+        }
+
+        FILE* file = NULL;
+        errno_t err = fopen_s(&file, fileName, "w");
+        if (err != 0 || file == NULL) {
+            printf("Error opening file for writing.\n");
+            return;
+        }
+
+        for (int i = 0; i <= currLine; i++) {
+            if (linesArray[i] != NULL) {
+                fprintf(file, "%s\n", linesArray[i]);
+            }
+        }
+
+        fclose(file);
+        printf("Text has been saved successfully.\n");
+    }
+    else {
+        printf("Error reading file name.\n");
+    }
+}
+
+void fileLoad(char** linesArray, size_t* lineSizes) {
+    char fileName[MAXLENGTH];
+    printf("Enter the file name for loading: ");
+    if (fgets(fileName, MAXLENGTH, stdin) != NULL) {
+        size_t len = strlen(fileName);
+        if (len > 0 && fileName[len - 1] == '\n') {
+            fileName[len - 1] = '\0';
+        }
+
+        FILE* file = NULL;
+        errno_t err = fopen_s(&file, fileName, "r");
+        if (err != 0 || file == NULL) {
+            printf("Error opening file for reading.\n");
+            return;
+        }
+
+        // Free previously allocated memory
+        for (int i = 0; i < MAXLENGTH; i++) {
+            free(linesArray[i]);
+            linesArray[i] = NULL;
+            lineSizes[i] = 0;
+        }
+
+        currLine = 0;
+        char line[MAXLENGTH];
+        while (fgets(line, MAXLENGTH, file) != NULL && currLine < MAXLENGTH) {
+            size_t len = strlen(line);
+            if (len > 0 && line[len - 1] == '\n') {
+                line[len - 1] = '\0';
+                len--;
+            }
+
+            linesArray[currLine] = (char*)malloc((len + 1) * sizeof(char));
+            if (linesArray[currLine] == NULL) {
+                printf("Memory allocation failed.\n");
+                fclose(file);
+                return;
+            }
+            strcpy_s(linesArray[currLine], len + 1, line);
+            lineSizes[currLine] = len + 1;
+            currLine++;
+        }
+
+        fclose(file);
+        printf("Text has been loaded successfully.\n");
+    }
+    else {
+        printf("Error reading file name.\n");
+    }
+}
+
 
 int main() {
     char* linesArray[MAXLENGTH] = { NULL };
@@ -71,16 +161,15 @@ int main() {
             break;
         case 2:
             clearConsole();
-            newLine();0
-            printf("New line is started\n");
+            newLine(linesArray, lineSizes);
             break;
         case 3:
             clearConsole();
-            printf("Enter the file name for saving: ");
+            fileSave(linesArray, currLine);
             break;
         case 4:
             clearConsole();
-            printf("Enter the file name for loading: ");
+            fileLoad(linesArray, lineSizes);
             break;
         case 5:
             clearConsole();
@@ -99,7 +188,7 @@ int main() {
         }
     }
 
-    // Звільняємо виділену пам'ять
+    // Free allocated memory
     for (int i = 0; i < MAXLENGTH; i++) {
         free(linesArray[i]);
     }
