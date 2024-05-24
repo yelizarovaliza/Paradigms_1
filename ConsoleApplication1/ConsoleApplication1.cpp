@@ -70,7 +70,7 @@ void fileSave(char** linesArray, int currLine) {
         }
 
         FILE* file = NULL;
-        errno_t err = fopen_s(&file, fileName, "w");
+        errno_t err = fopen_s(&file, fileName, "a");
         if (err != 0 || file == NULL) {
             printf("Error opening file for writing.\n");
             return;
@@ -106,14 +106,6 @@ void fileLoad(char** linesArray, size_t* lineSizes) {
             return;
         }
 
-        // Free previously memory
-        for (int i = 0; i < MAXLENGTH; i++) {
-            free(linesArray[i]);
-            linesArray[i] = NULL;
-            lineSizes[i] = 0;
-        }
-
-        currLine = 0;
         char line[MAXLENGTH];
         while (fgets(line, MAXLENGTH, file) != NULL && currLine < MAXLENGTH) {
             size_t len = strlen(line);
@@ -140,6 +132,113 @@ void fileLoad(char** linesArray, size_t* lineSizes) {
         printf("Error reading file name.\n");
     }
 }
+
+
+void outputAllText(char** linesArray) {
+    int hasContent = 0;
+    printf("Here is all your lines which where written down: \n");
+    for (int i = 0; i <= currLine; i++) {
+        if (linesArray[i] != NULL && strlen(linesArray[i]) > 0) {
+            
+            printf("%s\n", linesArray[i]);
+            hasContent = 1;
+        }
+    }
+
+    if (!hasContent) {
+        printf("No non-empty lines found.\n");
+    }
+}
+
+void addTextCoordinates(char** linesArray, size_t* lineSizes) {
+    int lineIndex, charIndex;
+    char insertText[MAXLENGTH];
+
+    printf("Choose line and index: ");
+    if (scanf_s("%d %d", &lineIndex, &charIndex) != 2) {
+        printf("Invalid input. Please enter line and index as two integers.\n");
+        return;
+    }
+    getchar(); // clear the newline character left by scanf_s
+
+    if (lineIndex < 0 || lineIndex >= MAXLENGTH || linesArray[lineIndex] == NULL) {
+        printf("Invalid line index or line is empty.\n");
+        return;
+    }
+
+    printf("Enter text to insert: ");
+    if (fgets(insertText, MAXLENGTH, stdin) != NULL) {
+        size_t lenInsertText = strlen(insertText);
+        if (lenInsertText > 0 && insertText[lenInsertText - 1] == '\n') {
+            insertText[lenInsertText - 1] = '\0';
+            lenInsertText--;
+        }
+
+        size_t lineLen = strlen(linesArray[lineIndex]);
+
+        if (charIndex < 0 || charIndex > lineLen) {
+            printf("Invalid character index.\n");
+            return;
+        }
+
+        lineSizes[lineIndex] += lenInsertText;
+        linesArray[lineIndex] = (char*)realloc(linesArray[lineIndex], lineSizes[lineIndex] * sizeof(char));
+        if (linesArray[lineIndex] == NULL) {
+            printf("Memory reallocation failed.\n");
+            return;
+        }
+
+        memmove(&linesArray[lineIndex][charIndex + lenInsertText], &linesArray[lineIndex][charIndex], lineLen - charIndex + 1);
+        memcpy(&linesArray[lineIndex][charIndex], insertText, lenInsertText);
+
+        printf("Text has been inserted successfully.\n");
+        printf("Updated line content: %s\n", linesArray[lineIndex]);
+    }
+    else {
+        printf("Error reading input.\n");
+    }
+}
+
+void searchWord(char** linesArray, size_t* lineSizes) {
+    char searchTerm[MAXLENGTH];
+    printf("Enter text to search: ");
+    if (fgets(searchTerm, MAXLENGTH, stdin) != NULL) {
+        size_t len = strlen(searchTerm);
+        if (len > 0 && searchTerm[len - 1] == '\n') {
+            searchTerm[len - 1] = '\0';
+            len--;
+        }
+
+        printf("Searching for: %s\n", searchTerm);
+        int found = 0;
+
+        for (int i = 0; i <= currLine; i++) {
+            if (linesArray[i] != NULL) {
+                char* pos = strstr(linesArray[i], searchTerm);
+                while (pos != NULL) {
+                    int index = (int)(pos - linesArray[i]);
+                    if (found) {
+                        printf(", ");
+                    }
+                    printf("%d %d", i, index);
+                    found = 1;
+                    pos = strstr(pos + 1, searchTerm);
+                }
+            }
+        }
+
+        if (!found) {
+            printf("Text not found.\n");
+        }
+        else {
+            printf("\n");
+        }
+    }
+    else {
+        printf("Error reading search term.\n");
+    }
+}
+
 
 
 int main() {
@@ -173,15 +272,15 @@ int main() {
             break;
         case 5:
             clearConsole();
-            printf("Here might be text from file: ");
+            outputAllText(linesArray);
             break;
         case 6:
             clearConsole();
-            printf("Choose line and index: ");
+            addTextCoordinates(linesArray, lineSizes);
             break;
         case 7:
             clearConsole();
-            printf("Enter text to search: ");
+            searchWord(linesArray, lineSizes);
             break;
         default:
             printf("Invalid choice, please try again.\n");
