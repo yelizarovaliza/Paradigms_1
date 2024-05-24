@@ -6,7 +6,7 @@ void clearConsole() {
     system("cls");
 }
 
-#define MAXLENGTH 100
+#define MAXLENGTH 128
 int currLine = 0;
 
 void addText(char** linesArray, size_t* lineSizes) {
@@ -133,7 +133,6 @@ void fileLoad(char** linesArray, size_t* lineSizes) {
     }
 }
 
-
 void outputAllText(char** linesArray) {
     int hasContent = 0;
     printf("Here is all your lines which where written down: \n");
@@ -238,7 +237,6 @@ void searchWord(char** linesArray, size_t* lineSizes) {
         printf("Error reading search term.\n");
     }
 }
-
 
 
 int main() {
