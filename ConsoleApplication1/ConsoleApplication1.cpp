@@ -6,13 +6,14 @@ void clearConsole() {
     system("cls");
 }
 
-#define MAXLENGTH 128
-int currLine = 0;
+#define INITIAL_MAX_LINES 10
+#define MAX_INPUT_LENGTH 128
 
-void addText(char** linesArray, size_t* lineSizes) {
-    char text[MAXLENGTH];
+
+void addText(char*** linesArray, size_t** lineSizes, int* currLine, int* maxLines) {
+    char text[MAX_INPUT_LENGTH];
     printf("Enter text to append: ");
-    if (fgets(text, MAXLENGTH, stdin) != NULL) {
+    if (fgets(text, MAX_INPUT_LENGTH, stdin) != NULL) {
         size_t lentext = strlen(text);
         if (lentext > 0 && text[lentext - 1] == '\n') {
             text[lentext - 1] = '\0';
@@ -20,50 +21,56 @@ void addText(char** linesArray, size_t* lineSizes) {
         }
         printf("You entered: %s\n", text);
 
-        if (linesArray[currLine] == NULL) {
-            linesArray[currLine] = (char*)malloc((lentext + 1) * sizeof(char));
-            if (linesArray[currLine] == NULL) {
+        if ((*linesArray)[*currLine] == NULL) {
+            (*linesArray)[*currLine] = (char*)malloc((lentext + 1) * sizeof(char));
+            if ((*linesArray)[*currLine] == NULL) {
                 printf("Memory allocation failed.\n");
                 return;
             }
-            strcpy_s(linesArray[currLine], lentext + 1, text);
-            lineSizes[currLine] = lentext + 1;
+            strcpy_s((*linesArray)[*currLine], lentext + 1, text);
+            (*lineSizes)[*currLine] = lentext + 1;
         }
         else {
-            size_t lineArraylen = strlen(linesArray[currLine]);
-            lineSizes[currLine] += (lentext + 1);
-            linesArray[currLine] = (char*)realloc(linesArray[currLine], lineSizes[currLine] * sizeof(char));
-            if (linesArray[currLine] == NULL) {
+            size_t lineArraylen = strlen((*linesArray)[*currLine]);
+            (*lineSizes)[*currLine] += (lentext + 1);
+            (*linesArray)[*currLine] = (char*)realloc((*linesArray)[*currLine], (*lineSizes)[*currLine] * sizeof(char));
+            if ((*linesArray)[*currLine] == NULL) {
                 printf("Memory reallocation failed.\n");
                 return;
             }
-            strcat_s(linesArray[currLine], lineSizes[currLine], " ");
-            strcat_s(linesArray[currLine], lineSizes[currLine], text);
+            strcat_s((*linesArray)[*currLine], (*lineSizes)[*currLine], " ");
+            strcat_s((*linesArray)[*currLine], (*lineSizes)[*currLine], text);
         }
 
-        printf("Current line content: %s\n", linesArray[currLine]);
+        printf("Current line content: %s\n", (*linesArray)[*currLine]);
     }
     else {
         printf("Error reading input.\n");
     }
 }
 
-void newLine(char** linesArray, size_t* lineSizes) {
-    if (currLine < MAXLENGTH - 1) {
-        currLine++;
-        linesArray[currLine] = NULL;
-        lineSizes[currLine] = 0;
-        printf("New line is started\n");
+void newLine(char*** linesArray, size_t** lineSizes, int* currLine, int* maxLines) {
+    (*currLine)++;
+    if (*currLine >= *maxLines) {
+        *maxLines *= 2;
+        *linesArray = (char**)realloc(*linesArray, (*maxLines) * sizeof(char*));
+        *lineSizes = (size_t*)realloc(*lineSizes, (*maxLines) * sizeof(size_t));
+        if (*linesArray == NULL || *lineSizes == NULL) {
+            printf("Memory reallocation failed.\n");
+            exit(EXIT_FAILURE);
+        }
+        for (int i = *currLine; i < *maxLines; i++) {
+            (*linesArray)[i] = NULL;
+            (*lineSizes)[i] = 0;
+        }
     }
-    else {
-        printf("Maximum number of lines reached\n");
-    }
+    printf("New line is started\n");
 }
 
 void fileSave(char** linesArray, int currLine) {
-    char fileName[MAXLENGTH];
+    char fileName[MAX_INPUT_LENGTH];
     printf("Enter the file name for saving: ");
-    if (fgets(fileName, MAXLENGTH, stdin) != NULL) {
+    if (fgets(fileName, MAX_INPUT_LENGTH, stdin) != NULL) {
         size_t len = strlen(fileName);
         if (len > 0 && fileName[len - 1] == '\n') {
             fileName[len - 1] = '\0';
@@ -90,10 +97,10 @@ void fileSave(char** linesArray, int currLine) {
     }
 }
 
-void fileLoad(char** linesArray, size_t* lineSizes) {
-    char fileName[MAXLENGTH];
+void fileLoad(char*** linesArray, size_t** lineSizes, int* currLine, int* maxLines) {
+    char fileName[MAX_INPUT_LENGTH];
     printf("Enter the file name for loading: ");
-    if (fgets(fileName, MAXLENGTH, stdin) != NULL) {
+    if (fgets(fileName, MAX_INPUT_LENGTH, stdin) != NULL) {
         size_t len = strlen(fileName);
         if (len > 0 && fileName[len - 1] == '\n') {
             fileName[len - 1] = '\0';
@@ -106,23 +113,33 @@ void fileLoad(char** linesArray, size_t* lineSizes) {
             return;
         }
 
-        char line[MAXLENGTH];
-        while (fgets(line, MAXLENGTH, file) != NULL && currLine < MAXLENGTH) {
+        char line[MAX_INPUT_LENGTH];
+        while (fgets(line, MAX_INPUT_LENGTH, file) != NULL) {
             size_t len = strlen(line);
             if (len > 0 && line[len - 1] == '\n') {
                 line[len - 1] = '\0';
                 len--;
             }
 
-            linesArray[currLine] = (char*)malloc((len + 1) * sizeof(char));
-            if (linesArray[currLine] == NULL) {
+            if (*currLine >= *maxLines) {
+                *maxLines *= 2;
+                *linesArray = (char**)realloc(*linesArray, (*maxLines) * sizeof(char*));
+                *lineSizes = (size_t*)realloc(*lineSizes, (*maxLines) * sizeof(size_t));
+                if (*linesArray == NULL || *lineSizes == NULL) {
+                    printf("Memory reallocation failed.\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            (*linesArray)[*currLine] = (char*)malloc((len + 1) * sizeof(char));
+            if ((*linesArray)[*currLine] == NULL) {
                 printf("Memory allocation failed.\n");
                 fclose(file);
                 return;
             }
-            strcpy_s(linesArray[currLine], len + 1, line);
-            lineSizes[currLine] = len + 1;
-            currLine++;
+            strcpy_s((*linesArray)[*currLine], len + 1, line);
+            (*lineSizes)[*currLine] = len + 1;
+            (*currLine)++;
         }
 
         fclose(file);
@@ -133,12 +150,11 @@ void fileLoad(char** linesArray, size_t* lineSizes) {
     }
 }
 
-void outputAllText(char** linesArray) {
+void outputAllText(char** linesArray, int currLine) {
     int hasContent = 0;
-    printf("Here is all your lines which where written down: \n");
+    printf("Here is all your lines which were written down: \n");
     for (int i = 0; i <= currLine; i++) {
         if (linesArray[i] != NULL && strlen(linesArray[i]) > 0) {
-            
             printf("%s\n", linesArray[i]);
             hasContent = 1;
         }
@@ -149,59 +165,59 @@ void outputAllText(char** linesArray) {
     }
 }
 
-void addTextCoordinates(char** linesArray, size_t* lineSizes) {
+void addTextCoordinates(char*** linesArray, size_t** lineSizes, int maxLines) {
     int lineIndex, charIndex;
-    char insertText[MAXLENGTH];
+    char insertText[MAX_INPUT_LENGTH];
 
     printf("Choose line and index: ");
     if (scanf_s("%d %d", &lineIndex, &charIndex) != 2) {
         printf("Invalid input. Please enter line and index as two integers.\n");
         return;
     }
-    getchar(); // clear the newline character left by scanf_s
+    getchar();
 
-    if (lineIndex < 0 || lineIndex >= MAXLENGTH || linesArray[lineIndex] == NULL) {
+    if (lineIndex < 0 || lineIndex >= maxLines || (*linesArray)[lineIndex] == NULL) {
         printf("Invalid line index or line is empty.\n");
         return;
     }
 
     printf("Enter text to insert: ");
-    if (fgets(insertText, MAXLENGTH, stdin) != NULL) {
+    if (fgets(insertText, MAX_INPUT_LENGTH, stdin) != NULL) {
         size_t lenInsertText = strlen(insertText);
         if (lenInsertText > 0 && insertText[lenInsertText - 1] == '\n') {
             insertText[lenInsertText - 1] = '\0';
             lenInsertText--;
         }
 
-        size_t lineLen = strlen(linesArray[lineIndex]);
+        size_t lineLen = strlen((*linesArray)[lineIndex]);
 
         if (charIndex < 0 || charIndex > lineLen) {
             printf("Invalid character index.\n");
             return;
         }
 
-        lineSizes[lineIndex] += lenInsertText;
-        linesArray[lineIndex] = (char*)realloc(linesArray[lineIndex], lineSizes[lineIndex] * sizeof(char));
-        if (linesArray[lineIndex] == NULL) {
+        (*lineSizes)[lineIndex] += lenInsertText;
+        (*linesArray)[lineIndex] = (char*)realloc((*linesArray)[lineIndex], (*lineSizes)[lineIndex] * sizeof(char));
+        if ((*linesArray)[lineIndex] == NULL) {
             printf("Memory reallocation failed.\n");
             return;
         }
 
-        memmove(&linesArray[lineIndex][charIndex + lenInsertText], &linesArray[lineIndex][charIndex], lineLen - charIndex + 1);
-        memcpy(&linesArray[lineIndex][charIndex], insertText, lenInsertText);
+        memmove(&(*linesArray)[lineIndex][charIndex + lenInsertText], &(*linesArray)[lineIndex][charIndex], lineLen - charIndex + 1);
+        memcpy(&(*linesArray)[lineIndex][charIndex], insertText, lenInsertText);
 
         printf("Text has been inserted successfully.\n");
-        printf("Updated line content: %s\n", linesArray[lineIndex]);
+        printf("Updated line content: %s\n", (*linesArray)[lineIndex]);
     }
     else {
         printf("Error reading input.\n");
     }
 }
 
-void searchWord(char** linesArray, size_t* lineSizes) {
-    char searchTerm[MAXLENGTH];
+void searchWord(char** linesArray, int currLine) {
+    char searchTerm[MAX_INPUT_LENGTH];
     printf("Enter text to search: ");
-    if (fgets(searchTerm, MAXLENGTH, stdin) != NULL) {
+    if (fgets(searchTerm, MAX_INPUT_LENGTH, stdin) != NULL) {
         size_t len = strlen(searchTerm);
         if (len > 0 && searchTerm[len - 1] == '\n') {
             searchTerm[len - 1] = '\0';
@@ -236,10 +252,21 @@ void searchWord(char** linesArray, size_t* lineSizes) {
     }
 }
 
-
 int main() {
-    char* linesArray[MAXLENGTH] = { NULL };
-    size_t lineSizes[MAXLENGTH] = { 0 };
+    int maxLines = INITIAL_MAX_LINES;
+    int currLine = 0;
+    char** linesArray = (char**)malloc(maxLines * sizeof(char*));
+    size_t* lineSizes = (size_t*)malloc(maxLines * sizeof(size_t));
+    if (linesArray == NULL || lineSizes == NULL) {
+        printf("Initial memory allocation failed.\n");
+        return EXIT_FAILURE;
+    }
+
+    for (int i = 0; i < maxLines; i++) {
+        linesArray[i] = NULL;
+        lineSizes[i] = 0;
+    }
+
     int userChoice = -1;
     while (userChoice != 0) {
         printf("Choose the command:\n");
@@ -252,11 +279,11 @@ int main() {
             break;
         case 1:
             clearConsole();
-            addText(linesArray, lineSizes);
+            addText(&linesArray, &lineSizes, &currLine, &maxLines);
             break;
         case 2:
             clearConsole();
-            newLine(linesArray, lineSizes);
+            newLine(&linesArray, &lineSizes, &currLine, &maxLines);
             break;
         case 3:
             clearConsole();
@@ -264,19 +291,19 @@ int main() {
             break;
         case 4:
             clearConsole();
-            fileLoad(linesArray, lineSizes);
+            fileLoad(&linesArray, &lineSizes, &currLine, &maxLines);
             break;
         case 5:
             clearConsole();
-            outputAllText(linesArray);
+            outputAllText(linesArray, currLine);
             break;
         case 6:
             clearConsole();
-            addTextCoordinates(linesArray, lineSizes);
+            addTextCoordinates(&linesArray, &lineSizes, maxLines);
             break;
         case 7:
             clearConsole();
-            searchWord(linesArray, lineSizes);
+            searchWord(linesArray, currLine);
             break;
         default:
             printf("Invalid choice, please try again.\n");
@@ -284,9 +311,11 @@ int main() {
     }
 
     // Free memory
-    for (int i = 0; i < MAXLENGTH; i++) {
+    for (int i = 0; i < maxLines; i++) {
         free(linesArray[i]);
     }
+    free(linesArray);
+    free(lineSizes);
 
     return 0;
 }
