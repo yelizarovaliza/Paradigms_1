@@ -25,23 +25,8 @@ double - 8 byte
 
 ### 4. Which segments does the process memory have?
 
-|----------------------------|
-|    Reserved Segment        |
-|----------------------------|
-|    Memory-Mapped Segment   |
-|----------------------------|
-|          Stack             | <- Growing downwards
-|----------------------------|
-|         (empty)            |
-|----------------------------|
-|           Heap             | <- Growing upwards
-|----------------------------|
-|    Uninitialized Data (BSS)|
-|----------------------------|
-|  Initialized Data Segment  |
-|----------------------------|
-|       Text Segment         |
-|----------------------------|
+![Ufj7o](https://github.com/yelizarovaliza/Paradigms_1/assets/88542068/88d878b4-7aa4-45ec-b583-01fdbd7b8f32)
+
 
 ### 5. What is the virtual memory space?
 
