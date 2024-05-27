@@ -258,7 +258,7 @@ int main() {
     char** linesArray = (char**)malloc(maxLines * sizeof(char*));
     size_t* lineSizes = (size_t*)malloc(maxLines * sizeof(size_t));
     if (linesArray == NULL || lineSizes == NULL) {
-        printf("Initial memory allocation failed.\n");
+        printf("Memory allocation failed.\n");
         return EXIT_FAILURE;
     }
 
