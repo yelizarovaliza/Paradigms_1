@@ -114,6 +114,7 @@ void fileLoad(char*** linesArray, size_t** lineSizes, int* currLine, int* maxLin
         }
 
         char line[MAX_INPUT_LENGTH];
+        int lineIndex = 0;
         while (fgets(line, MAX_INPUT_LENGTH, file) != NULL) {
             size_t len = strlen(line);
             if (len > 0 && line[len - 1] == '\n') {
@@ -121,28 +122,30 @@ void fileLoad(char*** linesArray, size_t** lineSizes, int* currLine, int* maxLin
                 len--;
             }
 
-            if (*currLine >= *maxLines) {
+            if (lineIndex >= *maxLines) {
                 *maxLines *= 2;
                 *linesArray = (char**)realloc(*linesArray, (*maxLines) * sizeof(char*));
                 *lineSizes = (size_t*)realloc(*lineSizes, (*maxLines) * sizeof(size_t));
                 if (*linesArray == NULL || *lineSizes == NULL) {
                     printf("Memory reallocation failed.\n");
+                    fclose(file);
                     exit(EXIT_FAILURE);
                 }
             }
 
-            (*linesArray)[*currLine] = (char*)malloc((len + 1) * sizeof(char));
-            if ((*linesArray)[*currLine] == NULL) {
+            (*linesArray)[lineIndex] = (char*)malloc((len + 1) * sizeof(char));
+            if ((*linesArray)[lineIndex] == NULL) {
                 printf("Memory allocation failed.\n");
                 fclose(file);
                 return;
             }
-            strcpy_s((*linesArray)[*currLine], len + 1, line);
-            (*lineSizes)[*currLine] = len + 1;
-            (*currLine)++;
+            strcpy_s((*linesArray)[lineIndex], len + 1, line);
+            (*lineSizes)[lineIndex] = len + 1;
+            lineIndex++;
         }
 
         fclose(file);
+        *currLine = lineIndex - 1;
         printf("Text has been loaded successfully.\n");
     }
     else {
@@ -278,31 +281,31 @@ int main() {
             printf("Exiting program.\n");
             break;
         case 1:
-            clearConsole();
+            //clearConsole();
             addText(&linesArray, &lineSizes, &currLine, &maxLines);
             break;
         case 2:
-            clearConsole();
+            //clearConsole();
             newLine(&linesArray, &lineSizes, &currLine, &maxLines);
             break;
         case 3:
-            clearConsole();
+            //clearConsole();
             fileSave(linesArray, currLine);
             break;
         case 4:
-            clearConsole();
+            //clearConsole();
             fileLoad(&linesArray, &lineSizes, &currLine, &maxLines);
             break;
         case 5:
-            clearConsole();
+            //clearConsole();
             outputAllText(linesArray, currLine);
             break;
         case 6:
-            clearConsole();
+            //clearConsole();
             addTextCoordinates(&linesArray, &lineSizes, maxLines);
             break;
         case 7:
-            clearConsole();
+            //clearConsole();
             searchWord(linesArray, currLine);
             break;
         default:
