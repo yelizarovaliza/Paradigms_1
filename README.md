@@ -10,7 +10,16 @@ Structural programming is a software development and design methodology that foc
 Procedural programming organizes code into procedures, which have better modularity, reusability, and maintainability. It uses clear control structures and calls procedures to perform certain tasks, being the principle paradigm where other high-level programming languages are formed. Procedural programming is still broadly practiced, and it is the base of other more complicated paradigms.
 
 ### 3. Which primitive data types do you know? Key differences between them?
-
+##### Here will be small descriptions from lecture about types and most important information:
+boolean - (зберігання 1 byte) true/false meaning
+char - зберігання символа
+byte - робота одразу з байтами (byte b  = 0x11;)
+Numbers:
+unsigned (int/short/long - only non-negative numbers with different length
+int - 4 byte hole numbers as + as -
+int32_t - 32 bit
+float - дві частини числа розділені комою (4 byte)
+double - 8 byte 
 ### 4. Which segments does the process memory have?
 
 ### 5. What is the virtual memory space?
