@@ -9,7 +9,6 @@ void clearConsole() {
 #define INITIAL_MAX_LINES 10
 #define MAX_INPUT_LENGTH 128
 
-
 void addText(char*** linesArray, size_t** lineSizes, int* currLine, int* maxLines) {
     char text[MAX_INPUT_LENGTH];
     printf("Enter text to append: ");
@@ -77,7 +76,7 @@ void fileSave(char** linesArray, int currLine) {
         }
 
         FILE* file = NULL;
-        errno_t err = fopen_s(&file, fileName, "a");
+        errno_t err = fopen_s(&file, fileName, "w");
         if (err != 0 || file == NULL) {
             printf("Error opening file for writing.\n");
             return;
@@ -114,9 +113,9 @@ void fileLoad(char*** linesArray, size_t** lineSizes, int* currLine, int* maxLin
         }
 
         char line[MAX_INPUT_LENGTH];
-        int lineIndex = 0;
+        int lineIndex = *currLine + 1;  // Start appending after the current line
         while (fgets(line, MAX_INPUT_LENGTH, file) != NULL) {
-            size_t len = strlen(line);
+            len = strlen(line);
             if (len > 0 && line[len - 1] == '\n') {
                 line[len - 1] = '\0';
                 len--;
@@ -130,6 +129,11 @@ void fileLoad(char*** linesArray, size_t** lineSizes, int* currLine, int* maxLin
                     printf("Memory reallocation failed.\n");
                     fclose(file);
                     exit(EXIT_FAILURE);
+                }
+                // Initialize new lines and sizes
+                for (int i = lineIndex; i < *maxLines; i++) {
+                    (*linesArray)[i] = NULL;
+                    (*lineSizes)[i] = 0;
                 }
             }
 
@@ -145,13 +149,14 @@ void fileLoad(char*** linesArray, size_t** lineSizes, int* currLine, int* maxLin
         }
 
         fclose(file);
-        *currLine = lineIndex - 1;
+        *currLine = lineIndex - 1;  // Update the current line to the last line appended
         printf("Text has been loaded successfully.\n");
     }
     else {
         printf("Error reading file name.\n");
     }
 }
+
 
 void outputAllText(char** linesArray, int currLine) {
     int hasContent = 0;
@@ -194,7 +199,7 @@ void addTextCoordinates(char*** linesArray, size_t** lineSizes, int maxLines) {
 
         size_t lineLen = strlen((*linesArray)[lineIndex]);
 
-        if (charIndex < 0 || charIndex > lineLen) {
+        if (charIndex < 0 || (size_t)charIndex > lineLen) {
             printf("Invalid character index.\n");
             return;
         }
